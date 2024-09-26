@@ -24,7 +24,7 @@
     </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication 3)</h1>
+    <h1>Web Authentication API (Biometric Authentication 4)</h1>
     <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
 
@@ -120,12 +120,12 @@
 
       // Authenticate (Get Credential)
       document.getElementById("authButton").addEventListener("click", () => {
-        console.log("Login button clicked"); // Debugging log
+        console.log("Login button clicked");
 
         const savedCredential = JSON.parse(
           localStorage.getItem("credentialData")
         );
-        console.log("Saved credential:", savedCredential); // Log saved credential
+        console.log("Saved credential:", savedCredential);
 
         if (!savedCredential) {
           alert("No credential found. Please register first.");
@@ -138,14 +138,20 @@
         ) {
           const challenge = new Uint8Array(32);
           window.crypto.getRandomValues(challenge);
-          console.log("Generated challenge:", challenge); // Log the generated challenge
+          console.log("Generated challenge:", challenge);
+
+          // Convert rawId object into Uint8Array
+          const rawIdArray = new Uint8Array(
+            Object.values(savedCredential.rawId)
+          ); // Convert to Uint8Array
+          console.log("Converted rawId to Uint8Array:", rawIdArray); // Log the converted rawId
 
           const options = {
             publicKey: {
-              challenge: challenge, // Secure random challenge
+              challenge: challenge,
               allowCredentials: [
                 {
-                  id: new Uint8Array(savedCredential.rawId), // Ensure rawId is a Uint8Array
+                  id: rawIdArray, // Use the converted Uint8Array
                   type: "public-key",
                 },
               ],
@@ -153,21 +159,20 @@
             },
           };
 
-          console.log("Authentication options:", options); // Log authentication options
+          console.log("Authentication options:", options);
 
           navigator.credentials
             .get(options)
             .then((credential) => {
-              console.log("Received credential:", credential); // Log received credential
+              console.log("Received credential:", credential);
 
               if (credential) {
-                // Compare credential.id with the saved one
                 console.log(
                   "Comparing received credential ID:",
                   credential.id,
                   "with saved credential ID:",
                   savedCredential.credentialId
-                ); // Log the comparison
+                );
 
                 if (credential.id === savedCredential.credentialId) {
                   alert("Authentication successful!");
@@ -176,7 +181,7 @@
                   alert("Authentication failed: Credential mismatch.");
                 }
               } else {
-                console.error("No credential received."); // Log if no credential is received
+                console.error("No credential received.");
               }
             })
             .catch((error) => {
