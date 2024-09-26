@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Authentication API Test (Face ID)</title>
+    <title>Web Authentication API Test</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -24,9 +24,9 @@
     </style>
   </head>
   <body>
-    <h1>3 : Web Authentication API (Biometric Authentication with Face ID)</h1>
-    <button id="registerButton">Register Face ID</button>
-    <button id="authButton">Authenticate with Face ID</button>
+    <h1>Web Authentication API (Biometric Authentication)</h1>
+    <button id="registerButton">Register Biometric</button>
+    <button id="authButton">Authenticate</button>
 
     <div id="credentialDisplay" style="display: none">
       <h2>Registered Credential</h2>
@@ -43,30 +43,41 @@
         <strong>Credentials Received:</strong>
         <span id="credentialsReceived"></span>
       </div>
+      <div class="credential-item">
+        <strong>Client Data JSON:</strong>
+        <pre id="clientDataJSON"></pre>
+      </div>
+      <div class="credential-item">
+        <strong>Attestation Object:</strong>
+        <pre id="attestationObject"></pre>
+      </div>
     </div>
 
     <script>
-      // Register Face ID (or biometric authenticator)
+      // Register Biometric (Create Credential)
       document
         .getElementById("registerButton")
         .addEventListener("click", () => {
           if ("credentials" in navigator) {
             const options = {
               publicKey: {
-                challenge: crypto.getRandomValues(new Uint8Array(32)),
-                user: {
-                  id: new Uint8Array(16), // Replace with the actual user ID
-                  name: "username",
-                  displayName: "User",
-                },
+                challenge: new Uint8Array(32), // Secure random challenge
                 rp: {
                   name: "Your App Name",
                 },
-                authenticatorSelection: {
-                  authenticatorAttachment: "platform", // Ensures Face ID / biometrics
+                user: {
+                  id: new Uint8Array(16), // Unique user ID
+                  name: "user@example.com", // User's name or email
+                  displayName: "User Name",
                 },
-                attestation: "direct",
-                timeout: 120000,
+                pubKeyCredParams: [
+                  {
+                    type: "public-key",
+                    alg: -7, // ES256 algorithm
+                  },
+                ],
+                timeout: 60000, // 60 seconds timeout
+                attestation: "direct", // Attestation options
               },
             };
 
@@ -75,7 +86,7 @@
               .then((credential) => {
                 console.log("Registration successful:", credential);
 
-                // Save credential data (for demonstration purposes)
+                // Save credential data to localStorage (for demo purposes)
                 const savedData = {
                   credentialId: credential.id,
                   rawId: new Uint8Array(credential.rawId),
@@ -95,9 +106,9 @@
                 document.getElementById("response").textContent =
                   JSON.stringify(credential.response);
                 document.getElementById("credentialDisplay").style.display =
-                  "block";
+                  "block"; // Show the credential display
 
-                alert("Face ID Registration successful and data saved!");
+                alert("Registration successful and data saved!");
               })
               .catch((error) => {
                 console.error("Registration failed:", error);
@@ -107,7 +118,7 @@
           }
         });
 
-      // Authenticate using Face ID
+      // Authenticate (Get Credential)
       document.getElementById("authButton").addEventListener("click", () => {
         const savedCredential = JSON.parse(
           localStorage.getItem("credentialData")
@@ -121,18 +132,14 @@
         if ("credentials" in navigator) {
           const options = {
             publicKey: {
-              challenge: crypto.getRandomValues(new Uint8Array(32)),
+              challenge: new Uint8Array(32), // Secure random challenge
               allowCredentials: [
                 {
-                  id: new Uint8Array(savedCredential.rawId), // The credential ID from registration
+                  id: new Uint8Array(savedCredential.rawId), // Use saved credential raw ID
                   type: "public-key",
                 },
               ],
-              userVerification: "required", // This forces biometric verification like Face ID
-              timeout: 120000,
-              authenticatorSelection: {
-                authenticatorAttachment: "platform", // Ensures Face ID / Touch ID
-              },
+              userVerification: "preferred",
             },
           };
 
@@ -140,8 +147,9 @@
             .get(options)
             .then((credential) => {
               if (credential) {
+                // Compare credential.id with the saved one
                 if (credential.id === savedCredential.credentialId) {
-                  alert("Authentication successful using Face ID!");
+                  alert("Authentication successful!");
                   console.log("Authentication successful:", credential);
                 } else {
                   alert("Authentication failed: Credential mismatch.");
@@ -150,7 +158,6 @@
             })
             .catch((error) => {
               console.error("Authentication failed:", error);
-              console.error("Error details:", error.message); // Log more error details
             });
         } else {
           console.error("Web Authentication API not supported.");
