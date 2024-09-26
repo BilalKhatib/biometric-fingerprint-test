@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Authentication API Test</title>
+  </head>
+  <body>
+    <h1>Web Authentication API (Biometric Authentication)</h1>
+    <button id="authButton">Authenticate</button>
+
+    <script>
+      document.getElementById("authButton").addEventListener("click", () => {
+        // Check if the Web Authentication API is supported
+        if ("credentials" in navigator) {
+          // Prepare the options for the biometric authentication
+          const options = {
+            publicKey: {
+              challenge: new Uint8Array(32), // Use a secure random value for the challenge
+              allowCredentials: [
+                {
+                  id: new Uint8Array(32), // The ID of the credential
+                  type: "public-key",
+                },
+              ],
+              userVerification: "preferred", // Options: 'required', 'preferred', 'discouraged'
+            },
+          };
+
+          // Request biometric authentication
+          navigator.credentials
+            .get(options)
+            .then((credential) => {
+              // Handle successful authentication
+              if (credential) {
+                alert("Authentication successful");
+                console.log("Credential ID:", credential.id); // Logs the ID of the credential
+                console.log("Raw Id:", new Uint8Array(credential.rawId)); // Logs the raw ID of the credential
+                console.log("Response:", credential.response); // Logs the response object with details about the authentication
+              }
+            })
+            .catch((error) => {
+              // Handle errors (e.g., user cancelled, no biometric available)
+              console.error("Authentication failed:", error);
+            });
+        } else {
+          console.error("Web Authentication API not supported.");
+        }
+      });
+    </script>
+  </body>
+</html>
