@@ -4,11 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Authentication API Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #credentialDisplay {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f9f9f9;
+      }
+      .credential-item {
+        margin: 5px 0;
+        padding: 5px;
+        border: 1px solid #007bff;
+        border-radius: 5px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication new)</h1>
+    <h1>Web Authentication API (Biometric Authentication)</h1>
     <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
+
+    <div id="credentialDisplay" style="display: none">
+      <h2>Registered Credential</h2>
+      <div class="credential-item">
+        <strong>Credential ID:</strong> <span id="credentialId"></span>
+      </div>
+      <div class="credential-item">
+        <strong>Raw ID:</strong> <span id="rawId"></span>
+      </div>
+      <div class="credential-item">
+        <strong>Response:</strong> <span id="response"></span>
+      </div>
+    </div>
 
     <script>
       document
@@ -41,6 +72,16 @@
               .create(options)
               .then((credential) => {
                 console.log("Registration successful:", credential);
+                // Display credential information
+                document.getElementById("credentialId").textContent =
+                  credential.id;
+                document.getElementById("rawId").textContent = new Uint8Array(
+                  credential.rawId
+                ).toString();
+                document.getElementById("response").textContent =
+                  JSON.stringify(credential.response);
+                document.getElementById("credentialDisplay").style.display =
+                  "block"; // Show the credential display
                 alert("Registration successful!");
               })
               .catch((error) => {
