@@ -24,7 +24,7 @@
     </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication 2)</h1>
+    <h1>Web Authentication API (Biometric Authentication 3)</h1>
     <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
 
@@ -120,9 +120,12 @@
 
       // Authenticate (Get Credential)
       document.getElementById("authButton").addEventListener("click", () => {
+        console.log("Login button clicked"); // Debugging log
+
         const savedCredential = JSON.parse(
           localStorage.getItem("credentialData")
         );
+        console.log("Saved credential:", savedCredential); // Log saved credential
 
         if (!savedCredential) {
           alert("No credential found. Please register first.");
@@ -135,6 +138,7 @@
         ) {
           const challenge = new Uint8Array(32);
           window.crypto.getRandomValues(challenge);
+          console.log("Generated challenge:", challenge); // Log the generated challenge
 
           const options = {
             publicKey: {
@@ -149,17 +153,30 @@
             },
           };
 
+          console.log("Authentication options:", options); // Log authentication options
+
           navigator.credentials
             .get(options)
             .then((credential) => {
+              console.log("Received credential:", credential); // Log received credential
+
               if (credential) {
                 // Compare credential.id with the saved one
+                console.log(
+                  "Comparing received credential ID:",
+                  credential.id,
+                  "with saved credential ID:",
+                  savedCredential.credentialId
+                ); // Log the comparison
+
                 if (credential.id === savedCredential.credentialId) {
                   alert("Authentication successful!");
                   console.log("Authentication successful:", credential);
                 } else {
                   alert("Authentication failed: Credential mismatch.");
                 }
+              } else {
+                console.error("No credential received."); // Log if no credential is received
               }
             })
             .catch((error) => {
