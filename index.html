@@ -24,7 +24,7 @@
     </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication)</h1>
+    <h1>Web Authentication API (Biometric Authentication 2)</h1>
     <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
 
@@ -129,13 +129,19 @@
           return;
         }
 
-        if ("credentials" in navigator) {
+        if (
+          navigator.credentials &&
+          typeof navigator.credentials.get === "function"
+        ) {
+          const challenge = new Uint8Array(32);
+          window.crypto.getRandomValues(challenge);
+
           const options = {
             publicKey: {
-              challenge: new Uint8Array(32), // Secure random challenge
+              challenge: challenge, // Secure random challenge
               allowCredentials: [
                 {
-                  id: new Uint8Array(savedCredential.rawId), // Use saved credential raw ID
+                  id: new Uint8Array(savedCredential.rawId), // Ensure rawId is a Uint8Array
                   type: "public-key",
                 },
               ],
