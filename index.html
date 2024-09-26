@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Authentication API Test</title>
+    <title>Web Authentication API Test (Face ID)</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -24,9 +24,9 @@
     </style>
   </head>
   <body>
-    <h1>test : Web Authentication API (Biometric Authentication)</h1>
-    <button id="registerButton">Register Biometric</button>
-    <button id="authButton">Authenticate</button>
+    <h1>Web Authentication API (Biometric Authentication with Face ID)</h1>
+    <button id="registerButton">Register Face ID</button>
+    <button id="authButton">Authenticate with Face ID</button>
 
     <div id="credentialDisplay" style="display: none">
       <h2>Registered Credential</h2>
@@ -43,31 +43,23 @@
         <strong>Credentials Received:</strong>
         <span id="credentialsReceived"></span>
       </div>
-      <div class="credential-item">
-        <strong>Client Data JSON:</strong>
-        <pre id="clientDataJSON"></pre>
-      </div>
-      <div class="credential-item">
-        <strong>Attestation Object:</strong>
-        <pre id="attestationObject"></pre>
-      </div>
     </div>
 
     <script>
-      // Register Biometric (Create Credential)
+      // Register Face ID (or biometric authenticator)
       document
         .getElementById("registerButton")
         .addEventListener("click", () => {
           if ("credentials" in navigator) {
             const options = {
               publicKey: {
-                challenge: new Uint8Array(32), // Secure random challenge
+                challenge: new Uint8Array(32), // Secure random challenge (replace with a real challenge from your server)
                 rp: {
                   name: "Your App Name",
                 },
                 user: {
-                  id: new Uint8Array(16), // Unique user ID
-                  name: "user@example.com", // User's name or email
+                  id: new Uint8Array(16), // User ID, should be unique and secure
+                  name: "user@example.com", // User's email or username
                   displayName: "User Name",
                 },
                 pubKeyCredParams: [
@@ -77,7 +69,11 @@
                   },
                 ],
                 timeout: 60000, // 60 seconds timeout
-                attestation: "direct", // Attestation options
+                authenticatorSelection: {
+                  authenticatorAttachment: "platform", // Use platform authenticator (built-in biometric hardware)
+                  userVerification: "required", // Require user verification (e.g., Face ID or fingerprint)
+                },
+                attestation: "direct", // Attestation type
               },
             };
 
@@ -86,7 +82,7 @@
               .then((credential) => {
                 console.log("Registration successful:", credential);
 
-                // Save credential data to localStorage (for demo purposes)
+                // Save credential data (for demonstration purposes)
                 const savedData = {
                   credentialId: credential.id,
                   rawId: new Uint8Array(credential.rawId),
@@ -106,9 +102,9 @@
                 document.getElementById("response").textContent =
                   JSON.stringify(credential.response);
                 document.getElementById("credentialDisplay").style.display =
-                  "block"; // Show the credential display
+                  "block";
 
-                alert("Registration successful and data saved!");
+                alert("Face ID Registration successful and data saved!");
               })
               .catch((error) => {
                 console.error("Registration failed:", error);
@@ -118,7 +114,7 @@
           }
         });
 
-      // Authenticate (Get Credential)
+      // Authenticate using Face ID
       document.getElementById("authButton").addEventListener("click", () => {
         const savedCredential = JSON.parse(
           localStorage.getItem("credentialData")
@@ -132,14 +128,14 @@
         if ("credentials" in navigator) {
           const options = {
             publicKey: {
-              challenge: new Uint8Array(32), // Secure random challenge
+              challenge: new Uint8Array(32), // Secure random challenge (replace with server-side challenge)
               allowCredentials: [
                 {
                   id: new Uint8Array(savedCredential.rawId), // Use saved credential raw ID
                   type: "public-key",
                 },
               ],
-              userVerification: "preferred",
+              userVerification: "required", // Ensure biometric verification (e.g., Face ID)
             },
           };
 
@@ -149,7 +145,7 @@
               if (credential) {
                 // Compare credential.id with the saved one
                 if (credential.id === savedCredential.credentialId) {
-                  alert("Authentication successful!");
+                  alert("Authentication successful using Face ID!");
                   console.log("Authentication successful:", credential);
                 } else {
                   alert("Authentication failed: Credential mismatch.");
