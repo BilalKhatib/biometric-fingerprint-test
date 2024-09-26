@@ -7,13 +7,52 @@
   </head>
   <body>
     <h1>Web Authentication API (Biometric Authentication)</h1>
+    <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
 
     <script>
+      document
+        .getElementById("registerButton")
+        .addEventListener("click", () => {
+          if ("credentials" in navigator) {
+            const options = {
+              publicKey: {
+                challenge: new Uint8Array(32), // Secure random challenge
+                rp: {
+                  name: "Your App Name",
+                },
+                user: {
+                  id: new Uint8Array(16), // Unique user ID
+                  name: "user@example.com", // User's name or email
+                  displayName: "User Name",
+                },
+                pubKeyCredParams: [
+                  {
+                    type: "public-key",
+                    alg: -7, // ES256 algorithm
+                  },
+                ],
+                timeout: 60000, // 60 seconds timeout
+                attestation: "direct", // Attestation options
+              },
+            };
+
+            navigator.credentials
+              .create(options)
+              .then((credential) => {
+                console.log("Registration successful:", credential);
+                alert("Registration successful!");
+              })
+              .catch((error) => {
+                console.error("Registration failed:", error);
+              });
+          } else {
+            console.error("Web Authentication API not supported.");
+          }
+        });
+
       document.getElementById("authButton").addEventListener("click", () => {
-        // Check if the Web Authentication API is supported
         if ("credentials" in navigator) {
-          // Prepare the options for the biometric authentication
           const options = {
             publicKey: {
               challenge: new Uint8Array(32), // Use a secure random value for the challenge
@@ -23,24 +62,21 @@
                   type: "public-key",
                 },
               ],
-              userVerification: "preferred", // Options: 'required', 'preferred', 'discouraged'
+              userVerification: "preferred",
             },
           };
 
-          // Request biometric authentication
           navigator.credentials
             .get(options)
             .then((credential) => {
-              // Handle successful authentication
               if (credential) {
                 alert("Authentication successful");
-                console.log("Credential ID:", credential.id); // Logs the ID of the credential
-                console.log("Raw Id:", new Uint8Array(credential.rawId)); // Logs the raw ID of the credential
-                console.log("Response:", credential.response); // Logs the response object with details about the authentication
+                console.log("Credential ID:", credential.id);
+                console.log("Raw Id:", new Uint8Array(credential.rawId));
+                console.log("Response:", credential.response);
               }
             })
             .catch((error) => {
-              // Handle errors (e.g., user cancelled, no biometric available)
               console.error("Authentication failed:", error);
             });
         } else {
