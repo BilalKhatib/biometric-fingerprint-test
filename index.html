@@ -40,8 +40,16 @@
         <strong>Response:</strong> <span id="response"></span>
       </div>
       <div class="credential-item">
-        <strong>credentials Received:</strong>
+        <strong>Credentials Received:</strong>
         <span id="credentialsReceived"></span>
+      </div>
+      <div class="credential-item">
+        <strong>Client Data JSON:</strong>
+        <pre id="clientDataJSON"></pre>
+      </div>
+      <div class="credential-item">
+        <strong>Attestation Object:</strong>
+        <pre id="attestationObject"></pre>
       </div>
     </div>
 
@@ -91,6 +99,17 @@
                   "block"; // Show the credential display
                 document.getElementById("credentialsReceived").textContent =
                   JSON.stringify(credential);
+
+                // Display Client Data JSON and Attestation Object
+                document.getElementById("clientDataJSON").textContent =
+                  JSON.stringify(credential.response.clientDataJSON, null, 2);
+                document.getElementById("attestationObject").textContent =
+                  JSON.stringify(
+                    credential.response.attestationObject,
+                    null,
+                    2
+                  );
+
                 alert("Registration successful!");
               })
               .catch((error) => {
@@ -124,6 +143,16 @@
                 console.log("Credential ID:", credential.id);
                 console.log("Raw Id:", new Uint8Array(credential.rawId));
                 console.log("Response:", credential.response);
+
+                // Display Client Data JSON and Attestation Object after authentication
+                document.getElementById("clientDataJSON").textContent =
+                  JSON.stringify(credential.response.clientDataJSON, null, 2);
+                document.getElementById("attestationObject").textContent =
+                  JSON.stringify(
+                    credential.response.attestationObject,
+                    null,
+                    2
+                  );
               }
             })
             .catch((error) => {
