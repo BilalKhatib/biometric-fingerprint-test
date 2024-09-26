@@ -24,7 +24,7 @@
     </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication)</h1>
+    <h1>test : Web Authentication API (Biometric Authentication)</h1>
     <button id="registerButton">Register Biometric</button>
     <button id="authButton">Authenticate</button>
 
@@ -54,6 +54,7 @@
     </div>
 
     <script>
+      // Register Biometric (Create Credential)
       document
         .getElementById("registerButton")
         .addEventListener("click", () => {
@@ -84,6 +85,18 @@
               .create(options)
               .then((credential) => {
                 console.log("Registration successful:", credential);
+
+                // Save credential data to localStorage (for demo purposes)
+                const savedData = {
+                  credentialId: credential.id,
+                  rawId: new Uint8Array(credential.rawId),
+                  response: credential.response,
+                };
+                localStorage.setItem(
+                  "credentialData",
+                  JSON.stringify(savedData)
+                );
+
                 // Display credential information
                 document.getElementById("credentialId").textContent =
                   credential.id;
@@ -95,22 +108,7 @@
                 document.getElementById("credentialDisplay").style.display =
                   "block"; // Show the credential display
 
-                document.getElementById("credentialsReceived").style.display =
-                  "block"; // Show the credential display
-                document.getElementById("credentialsReceived").textContent =
-                  JSON.stringify(credential);
-
-                // Display Client Data JSON and Attestation Object
-                document.getElementById("clientDataJSON").textContent =
-                  JSON.stringify(credential.response.clientDataJSON, null, 2);
-                document.getElementById("attestationObject").textContent =
-                  JSON.stringify(
-                    credential.response.attestationObject,
-                    null,
-                    2
-                  );
-
-                alert("Registration successful!");
+                alert("Registration successful and data saved!");
               })
               .catch((error) => {
                 console.error("Registration failed:", error);
@@ -120,14 +118,24 @@
           }
         });
 
+      // Authenticate (Get Credential)
       document.getElementById("authButton").addEventListener("click", () => {
+        const savedCredential = JSON.parse(
+          localStorage.getItem("credentialData")
+        );
+
+        if (!savedCredential) {
+          alert("No credential found. Please register first.");
+          return;
+        }
+
         if ("credentials" in navigator) {
           const options = {
             publicKey: {
-              challenge: new Uint8Array(32), // Use a secure random value for the challenge
+              challenge: new Uint8Array(32), // Secure random challenge
               allowCredentials: [
                 {
-                  id: new Uint8Array(32), // The ID of the credential
+                  id: new Uint8Array(savedCredential.rawId), // Use saved credential raw ID
                   type: "public-key",
                 },
               ],
@@ -139,20 +147,13 @@
             .get(options)
             .then((credential) => {
               if (credential) {
-                alert("Authentication successful");
-                console.log("Credential ID:", credential.id);
-                console.log("Raw Id:", new Uint8Array(credential.rawId));
-                console.log("Response:", credential.response);
-
-                // Display Client Data JSON and Attestation Object after authentication
-                document.getElementById("clientDataJSON").textContent =
-                  JSON.stringify(credential.response.clientDataJSON, null, 2);
-                document.getElementById("attestationObject").textContent =
-                  JSON.stringify(
-                    credential.response.attestationObject,
-                    null,
-                    2
-                  );
+                // Compare credential.id with the saved one
+                if (credential.id === savedCredential.credentialId) {
+                  alert("Authentication successful!");
+                  console.log("Authentication successful:", credential);
+                } else {
+                  alert("Authentication failed: Credential mismatch.");
+                }
               }
             })
             .catch((error) => {
