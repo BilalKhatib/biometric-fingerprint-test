@@ -24,7 +24,7 @@
     </style>
   </head>
   <body>
-    <h1>Web Authentication API (Biometric Authentication with Face ID)</h1>
+    <h1>2Web Authentication API (Biometric Authentication with Face ID)</h1>
     <button id="registerButton">Register Face ID</button>
     <button id="authButton">Authenticate with Face ID</button>
 
@@ -136,6 +136,7 @@
                 },
               ],
               userVerification: "required", // Ensure biometric verification (e.g., Face ID)
+              timeout: 120000, // Increase timeout to 2 minutes
             },
           };
 
@@ -143,7 +144,6 @@
             .get(options)
             .then((credential) => {
               if (credential) {
-                // Compare credential.id with the saved one
                 if (credential.id === savedCredential.credentialId) {
                   alert("Authentication successful using Face ID!");
                   console.log("Authentication successful:", credential);
@@ -154,6 +154,7 @@
             })
             .catch((error) => {
               console.error("Authentication failed:", error);
+              console.error("Error details:", error.message); // Log more error details
             });
         } else {
           console.error("Web Authentication API not supported.");
